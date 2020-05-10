@@ -31,9 +31,9 @@ import java.io.FileWriter;
 
 public class singleThreadGraph500Importer {
 	public static JanusGraph JanusG;
-	public static int commitBatch = 1;
+	public static int commitBatch = 4000;
 	private static HashMap<String, JanusGraphVertex> idset = new HashMap<String, JanusGraphVertex>();
-	String datasetDir = "/ebs/raw/graph500/graph500-22";
+	String datasetDir = "/home/plemanach/graphbenchmark/graph500-22";
 	String confPath = "";
 	
 
@@ -60,6 +60,7 @@ public class singleThreadGraph500Importer {
 					if(lineCounter % commitBatch == 0){
 						System.out.println("---- commit ----: " + Long.toString(lineCounter / commitBatch));
 						JanusG.tx().commit(); 
+						JanusG.tx().close();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();

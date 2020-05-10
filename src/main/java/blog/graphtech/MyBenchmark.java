@@ -33,7 +33,7 @@ package blog.graphtech;
 
 
 import blog.graphtech.*;
-import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
@@ -51,14 +51,15 @@ import java.util.concurrent.TimeUnit;
 public class MyBenchmark {
 
 
-    @Fork(value = 1, warmups = 0)
+    @Fork(value = 0, warmups = 0)
+    @Timeout(time = 2, timeUnit = TimeUnit.HOURS)
     @BenchmarkMode(Mode.SingleShotTime)
     @OutputTimeUnit(TimeUnit.SECONDS)
     @Measurement(iterations = 1, time = 1)
     @Warmup(iterations = 0, time = 1)
     @Benchmark
     public void LoadGraph500() {
-        singleThreadGraph500Importer importer = new singleThreadGraph500Importer("/home/plemanach/graphbenchmark/first-benchmark/src/main/java/blog/graphtech/graph500-janusgraph-cassandra.properties");
+        singleThreadGraph500Importer importer = new singleThreadGraph500Importer("/home/plemanach/graphbenchmark/src/main/java/blog/graphtech/graph500-janusgraph-cassandra.properties");
 	importer.createSchema();
 	importer.load();
 
