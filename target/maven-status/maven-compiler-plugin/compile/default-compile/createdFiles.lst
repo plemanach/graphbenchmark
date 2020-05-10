@@ -4,6 +4,6 @@ META-INF/BenchmarkList
 blog/graphtech/generated/MyBenchmark_jmhType.class
 blog/graphtech/MyBenchmark.class
 blog/graphtech/generated/MyBenchmark_jmhType_B1.class
-blog/graphtech/generated/MyBenchmark_jmhType_B2.class
 blog/graphtech/generated/MyBenchmark_LoadGraph500_jmhTest.class
+blog/graphtech/generated/MyBenchmark_jmhType_B2.class
 blog/graphtech/singleThreadGraph500Importer.class

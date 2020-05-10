@@ -31,8 +31,9 @@ import java.io.FileWriter;
 
 public class singleThreadGraph500Importer {
 	public static JanusGraph JanusG;
+	private JanusGraphTransaction trans;
 	public static int commitBatch = 4000;
-	private static HashMap<String, JanusGraphVertex> idset = new HashMap<String, JanusGraphVertex>();
+	private static HashMap<String, Long> idset = new HashMap<String, Long>();
 	String datasetDir = "/home/plemanach/graphbenchmark/graph500-22";
 	String confPath = "";
 	
@@ -50,6 +51,8 @@ public class singleThreadGraph500Importer {
 			String line;
 			long lineCounter = 0;
 			long startTime = System.nanoTime();
+			trans = JanusG.newTransaction();
+
 			while((line = reader.readLine()) != null) {
 				try {
 					String[] parts = line.split("\t");
@@ -59,18 +62,21 @@ public class singleThreadGraph500Importer {
 					lineCounter++;
 					if(lineCounter % commitBatch == 0){
 						System.out.println("---- commit ----: " + Long.toString(lineCounter / commitBatch));
-						JanusG.tx().commit(); 
-						JanusG.tx().close();
+						trans.commit();
+						trans.close();
+						trans = JanusG.newTransaction();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-			JanusG.tx().commit(); 
+			trans.commit();
+			trans.close();
 			long endTime = System.nanoTime();
 			long duration = (endTime - startTime);
 			System.out.println("######## loading time #######  " + Long.toString(duration/1000000) + " ms");
 			reader.close();
+			JanusG.close();
 		}
 		catch(IOException ioe) {
 			ioe.printStackTrace();
@@ -127,30 +133,41 @@ public class singleThreadGraph500Importer {
 		//JanusG.close();
 	}
 
-	private static void processLine(String srcId, String dstId) {
-		JanusGraphVertex srcVertex = (JanusGraphVertex)idset.get(srcId);
-		JanusGraphVertex dstVertex = (JanusGraphVertex)idset.get(dstId);
-		if(srcVertex == null) {
+	private  void processLine(String srcId, String dstId) {
+		Long srcVertexId  = (Long)idset.get(srcId);
+		Long dstVertexId  = (Long)idset.get(dstId);
+		JanusGraphVertex srcVertex;
+		JanusGraphVertex dstVertex;
+
+		if(srcVertexId == null) {
 			Long groupId = Long.parseLong(srcId);
 
-			srcVertex = JanusG.addVertex("MyNode");
+			srcVertex = trans.addVertex("MyNode");
 			srcVertex.property("id", srcId);
 			srcVertex.property("gremlin.pageRankVertexProgram.pageRank", 1.0);
 			srcVertex.property("gremlin.pageRankVertexProgram.edgeCount", 0);
 			srcVertex.property("WCC.groupId", groupId);
 			
-			idset.put(srcId, srcVertex);
+			idset.put(srcId, srcVertex.longId());
+		}else
+		{
+		  srcVertex = trans.getVertex(srcVertexId);
+		
 		}
-		if(dstVertex == null) {
+
+		if(dstVertexId == null) {
 			Long groupId = Long.parseLong(dstId);
 			
-			dstVertex = JanusG.addVertex("MyNode");
+			dstVertex = trans.addVertex("MyNode");
 			dstVertex.property("id", dstId);
 			dstVertex.property("gremlin.pageRankVertexProgram.pageRank", 1.0);
 			dstVertex.property("gremlin.pageRankVertexProgram.edgeCount", 0);
 			dstVertex.property("WCC.groupId", groupId);
 			
-			idset.put(dstId, dstVertex);
+			idset.put(dstId, dstVertex.longId());
+		} else {
+		
+		 dstVertex = trans.getVertex(dstVertexId);
 		}
 		
 		srcVertex.addEdge("MyEdge", dstVertex);
